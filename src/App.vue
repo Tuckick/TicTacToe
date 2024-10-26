@@ -6,6 +6,7 @@ import { useStore } from 'vuex'
 
 const store = useStore()
 const userDetails = computed(() => store.getters.getUserDetails)
+const isNotFound = computed(() => store.getters.getNotFoundState)
 const name = computed(() => userDetails.value?.name || 'Guest')
 const title = computed(() =>
   userDetails.value
@@ -15,7 +16,7 @@ const title = computed(() =>
 </script>
 
 <template>
-  <header>
+  <header v-if="!isNotFound">
     <img
       alt="Tic Tag Toe logo"
       class="logo"

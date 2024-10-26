@@ -4,17 +4,17 @@ import { googleSdkLoaded } from 'vue3-google-login'
 import axios from 'axios'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
+import config from '@/helper/config.json'
 
 const store = useStore()
 const userDetails = ref(null)
 const router = useRouter()
-
 const login = () => {
   googleSdkLoaded(google => {
     google.accounts.oauth2
       .initCodeClient({
-        client_id:
-          '26120683714-j7g6jepegd5pn7m0po1d7le0m7nfr6b1.apps.googleusercontent.com',
+        client_id: config.client_id,
+        client_secret: config.client_secret,
         scope: 'email profile openid',
         redirect_uri: 'http://localhost:3000/login',
         callback: response => {
@@ -52,23 +52,12 @@ const sendCodeToBackend = async code => {
     )
 
     if (userResponse && userResponse.data) {
-      // Set the userDetails data property to the userResponse object
       userDetails.value = userResponse.data
       store.dispatch('updateUserDetails', userResponse.data)
       router.push('/')
     } else {
-      // Handle the case where userResponse or userResponse.data is undefined
       console.error('Failed to fetch user details.')
     }
-    // {
-    // "sub": "100217413129864956555",
-    // "name": "nuttaya Pensrisirikul",
-    // "given_name": "nuttaya",
-    // "family_name": "Pensrisirikul",
-    // "picture": "https://lh3.googleusercontent.com/a/ACg8ocL7SO1oV855STQ0DVlebBsfD3Gn_FXaHOqiITmTQf8wRPqT2XE=s96-c",
-    // "email": "tuk.pensrisirikul@gmail.com",
-    // "email_verified": true
-    // }
   } catch (error) {
     console.error('Token exchange failed:', error.response.data)
   }
