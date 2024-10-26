@@ -32,18 +32,36 @@ const router = createRouter({
   ],
 })
 
+function checkTokenExpire(exrpire) {
+  if (exrpire) {
+    const now = Math.floor(Date.now() / 1000)
+
+    return exrpire < now
+  } else {
+    return true
+  }
+}
+
 router.beforeEach((to, from, next) => {
   if (to.matched[0].path == '/:catchAll(.*)') {
     store.dispatch('setNotFound', true)
     next()
   } else {
     store.dispatch('setNotFound', false)
-
     if (to.matched.some(record => record.meta.requiresAuth)) {
       const userDetails = store.getters.getUserDetails
+      const tokenExpire = store.getters.getTokenExpire
+
       if (!userDetails) {
         next({ name: 'login' })
       } else {
+        if (checkTokenExpire(tokenExpire)) {
+          alert('Your Session is Expired')
+          store.dispatch('clearUserDetails')
+          next({ name: 'login' })
+        } else {
+          next()
+        }
         next()
       }
     } else {

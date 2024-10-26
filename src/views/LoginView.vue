@@ -39,7 +39,7 @@ const sendCodeToBackend = async code => {
     })
 
     const accessToken = response.data.access_token
-    console.log(accessToken)
+    const expires_in = response.data.expires_in
 
     // Fetch user details using the access token
     const userResponse = await axios.get(
@@ -54,6 +54,7 @@ const sendCodeToBackend = async code => {
     if (userResponse && userResponse.data) {
       userDetails.value = userResponse.data
       store.dispatch('updateUserDetails', userResponse.data)
+      store.dispatch('updateExpired', getExpireTimestamp(expires_in))
       router.push('/')
     } else {
       console.error('Failed to fetch user details.')
@@ -61,6 +62,11 @@ const sendCodeToBackend = async code => {
   } catch (error) {
     console.error('Token exchange failed:', error.response.data)
   }
+}
+const getExpireTimestamp = milli => {
+  const now = Math.floor(Date.now() / 1000)
+  const expirationTime = now + milli
+  return expirationTime
 }
 </script>
 
