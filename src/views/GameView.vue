@@ -44,6 +44,12 @@ const winConditions = [
   [2, 4, 6],
 ]
 
+const bonusEvent = reactive({
+  show: false,
+  player: null,
+  classObj: 'hide-bonus',
+})
+
 const findWinner = square => {
   for (const conditions of winConditions) {
     const [a, b, c] = conditions
@@ -68,23 +74,35 @@ const updatePlayerPoints = winner => {
     if (winner === 'X') {
       utils.playerXPoints += 1
       utils.consecutiveWins.X += 1
-      utils.consecutiveWins.O = 0 // Reset O's consecutive wins
-      // Check if X has won 3 times consecutively
+      utils.consecutiveWins.O = 0
       if (utils.consecutiveWins.X === 3) {
-        utils.playerXPoints += 1 // Add bonus point
-        utils.consecutiveWins.X = 0 // Reset consecutive wins
+        utils.playerXPoints += 1
+        utils.consecutiveWins.X = 0
+        bonusPoint('X')
       }
     } else if (winner === 'O') {
       utils.playerOPoints += 1
       utils.consecutiveWins.O += 1
-      utils.consecutiveWins.X = 0 // Reset X's consecutive wins
-      // Check if O has won 3 times consecutively
+      utils.consecutiveWins.X = 0
       if (utils.consecutiveWins.O === 3) {
-        utils.playerOPoints += 1 // Add bonus point
-        utils.consecutiveWins.O = 0 // Reset consecutive wins
+        utils.playerOPoints += 1
+        utils.consecutiveWins.O = 0
+        bonusPoint('O')
       }
     }
   }
+}
+
+const bonusPoint = player => {
+  bonusEvent.show = true
+  bonusEvent.player = player
+  bonusEvent.classObj = 'show-bonus'
+
+  setTimeout(() => {
+    bonusEvent.show = false
+    bonusEvent.player = null
+    bonusEvent.classObj = 'hide-bonus'
+  }, 3000)
 }
 
 const winner = computed(() => {
@@ -126,10 +144,12 @@ const next = () => {
 }
 
 const move = (x, y) => {
-  if (squares.value[x][y] === '' && !gameEnd.value) {
-    squares.value[x][y] = utils.player
-    playerSwap()
-    if (utils.isComputer && !winner.value) executeComputer()
+  if (!bonusEvent.show) {
+    if (squares.value[x][y] === '' && !gameEnd.value) {
+      squares.value[x][y] = utils.player
+      playerSwap()
+      if (utils.isComputer && !winner.value) executeComputer()
+    }
   }
 }
 const executeComputer = () => {
@@ -145,7 +165,7 @@ const computerChoice = square => {
 
   if (choice === null) {
     do {
-      choice = Math.floor(Math.random() * 9) // Random number between 0-8
+      choice = Math.floor(Math.random() * 9)
     } while (square[choice] !== '')
   }
   square[choice] = utils.player
@@ -162,17 +182,17 @@ const array1dTo2d = array => {
 const smartChoice = (square, level) => {
   let returnPosition
   if (level === 'hard') {
-    // Priotorize computer's win possibilities
+    // computer win possibilities then user win possibilites
     returnPosition = findWinChances(square, 'O')
-    // If there is no chances for computer then find the user win possibilites and prevent from winning
     if (returnPosition == null) returnPosition = findWinChances(square, 'X')
   } else if (level === 'medium') {
-    // Prevent the user from winning
+    // user win possibilites
     returnPosition = findWinChances(square, 'X')
   } else if (level === 'easy') {
-    // Only focuses on computer win. Don't prevent user from winning
+    // computer win possibilities
     returnPosition = findWinChances(square, 'O')
   } else if (level === 'noob') {
+    // random
     returnPosition = null
   }
   return returnPosition
@@ -264,6 +284,13 @@ const calScore = score => {
         >
           {{ square }}
         </div>
+      </div>
+      <div
+        v-if="bonusEvent.show"
+        class="alert-bonus-wrapper"
+        :class="bonusEvent.classObj"
+      >
+        {{ `Player ${bonusEvent.player} Get Bonus Point 🎉🎉🎉` }}
       </div>
     </div>
     <div class="player-detail">
@@ -360,7 +387,30 @@ const calScore = score => {
   width: 24px;
   height: 24px;
 }
+.alert-bonus-wrapper {
+  position: absolute;
+  color: hsla(160, 100%, 37%, 1);
+  background-color: #ebfaeb;
+  padding: 4px 16px;
+  border-radius: 50px;
+  font-weight: 500;
+  font-size: 18px;
+  top: 50%;
+  bottom: 50%;
+  place-self: center;
+  rotate: 30degree;
+  transform: rotate(8deg);
+}
+.show-bonus {
+  opacity: 1;
+  transition: 'all 1s ease';
+}
+.hide-bonus {
+  opacity: 0;
+  transition: 'none';
+}
 .board {
+  position: relative;
   width: 300px;
   height: 300px;
 
