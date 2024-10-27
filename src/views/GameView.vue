@@ -76,8 +76,6 @@ const updatePlayerPoints = winner => {
       utils.consecutiveWins.X += 1
       utils.consecutiveWins.O = 0
       if (utils.consecutiveWins.X === 3) {
-        utils.playerXPoints += 1
-        utils.consecutiveWins.X = 0
         bonusPoint('X')
       }
     } else if (winner === 'O') {
@@ -85,8 +83,6 @@ const updatePlayerPoints = winner => {
       utils.consecutiveWins.O += 1
       utils.consecutiveWins.X = 0
       if (utils.consecutiveWins.O === 3) {
-        utils.playerOPoints += 1
-        utils.consecutiveWins.O = 0
         bonusPoint('O')
       }
     }
@@ -99,6 +95,13 @@ const bonusPoint = player => {
   bonusEvent.classObj = 'show-bonus'
 
   setTimeout(() => {
+    if (player == 'X') {
+      utils.playerXPoints += 1
+      utils.consecutiveWins.X = 0
+    } else {
+      utils.playerOPoints += 1
+      utils.consecutiveWins.O = 0
+    }
     bonusEvent.show = false
     bonusEvent.player = null
     bonusEvent.classObj = 'hide-bonus'
@@ -334,7 +337,9 @@ const calScore = score => {
           Wins!
         </span>
       </h3>
-      <button class="next-round-btn" @click="next">Next Round</button>
+      <button class="next-round-btn" @click="next" :disabled="bonusEvent.show">
+        Next Round
+      </button>
       <div class="score-wrapper">
         <div class="player-x">
           <div class="score-player-x">
@@ -487,6 +492,12 @@ const calScore = score => {
 .next-round-btn:hover {
   color: #ffffff;
   background-color: hsla(160, 100%, 37%, 1);
+}
+.next-round-btn:disabled {
+  cursor: not-allowed;
+  border: 1px solid #ccc;
+  background-color: #ccc;
+  color: #ffffff;
 }
 .score-wrapper {
   display: flex;
